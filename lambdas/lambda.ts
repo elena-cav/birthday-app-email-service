@@ -35,15 +35,20 @@ export const handler = async () => {
       AWS.DynamoDB.Converter.unmarshall(record)
     )
       ?.reduce((acc: [EmailInfo], next: Item) => {
-        const emailInfo = next?.birthdays
-          .reduce((acc, nextBirthday: Birthday) =>
-            (isYourBirthday(nextBirthday.date))
-              ? ({
-                ...nextBirthday,
-                email: next.email,
-              })
-              : acc
-          )
+        const emailInfo = next?.birthdays.reduce<EmailInfo[]>(
+          (previousEmailInfos: EmailInfo[], nextBirthday: Birthday): EmailInfo[] =>
+            isYourBirthday(nextBirthday.date)
+              ? [
+                  ...previousEmailInfos,
+                  {
+                    name: nextBirthday.name,
+                    birthday: new Date(nextBirthday.date),
+                    email: next.email,
+                  },
+                ]
+              : previousEmailInfos,
+          []
+        );
 
         return [...acc, emailInfo];
       }, [])
