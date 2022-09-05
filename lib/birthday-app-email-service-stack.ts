@@ -22,7 +22,14 @@ export class BirthdayAppEmailServiceStack extends cdk.Stack {
 
     emailLambda.addToRolePolicy(
       new PolicyStatement({
-        actions: ["ses:SendEmail", "SES:SendRawEmail"],
+        actions: ["dynamodb:Scan"],
+        resources: ["*"],
+        effect: Effect.ALLOW,
+      })
+    );
+    emailLambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["ses:SendEmail"],
         resources: ["*"],
         effect: Effect.ALLOW,
       })
