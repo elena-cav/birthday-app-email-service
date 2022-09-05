@@ -24,29 +24,29 @@ type Item = {
 
 type Birthday = {
   name: string;
-  date: Date;
+  date: string;
 };
 
 export const handler = async () => {
   try {
     const { Items } = await client.send(command);
 
-    const emailsToSendToday = Items
-      ?.map((record) => AWS.DynamoDB.Converter.unmarshall(record))
+    const emailsToSendToday = Items?.map((record) =>
+      AWS.DynamoDB.Converter.unmarshall(record)
+    )
       ?.reduce((acc: [EmailInfo], next: Item) => {
-        const todaysBirthdays = next?.birthdays.filter(
-          (birthday) => new Date() === new Date(birthday.date)
-        );
-        const emailInfo = todaysBirthdays.map((birthdayData: Birthday) => ({
-          ...birthdayData,
-          email: next.email,
-        }));
+        const emailInfo = next?.birthdays
+          .filter((birthday) => isYourBirthday(birthday.date))
+          .map((birthdayData: Birthday) => ({
+            ...birthdayData,
+            email: next.email,
+          }));
+
         return [...acc, emailInfo];
       }, [])
       .flat();
 
     console.log("EMAILS", emailsToSendToday);
-
   } catch (error) {
     console.log("ERROR", error);
     // error handling.
