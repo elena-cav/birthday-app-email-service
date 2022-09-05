@@ -31,11 +31,12 @@ export const handler = async () => {
   try {
     const { Items } = await client.send(command);
 
-    const emailsToSendToday = Items?.map((record) =>
-      AWS.DynamoDB.Converter.unmarshall(record)
-    )
-      ?.reduce((acc: [EmailInfo], next: Item) => {
-        const emailInfo = next?.birthdays.reduce<EmailInfo[]>(
+    const emailsToSendToday = Items
+      ?.map((record) =>
+        AWS.DynamoDB.Converter.unmarshall(record)
+      )
+      ?.map((next: Item) => {
+        return next?.birthdays.reduce<EmailInfo[]>(
           (previousEmailInfos: EmailInfo[], nextBirthday: Birthday): EmailInfo[] =>
             isYourBirthday(nextBirthday.date)
               ? [
@@ -49,8 +50,6 @@ export const handler = async () => {
               : previousEmailInfos,
           []
         );
-
-        return [...acc, emailInfo];
       }, [])
       .flat();
 
