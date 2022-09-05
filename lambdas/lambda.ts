@@ -36,11 +36,14 @@ export const handler = async () => {
     )
       ?.reduce((acc: [EmailInfo], next: Item) => {
         const emailInfo = next?.birthdays
-          .filter((birthday) => isYourBirthday(birthday.date))
-          .map((birthdayData: Birthday) => ({
-            ...birthdayData,
-            email: next.email,
-          }));
+          .reduce((acc, nextBirthday: Birthday) =>
+            (isYourBirthday(nextBirthday.date))
+              ? ({
+                ...nextBirthday,
+                email: next.email,
+              })
+              : acc
+          )
 
         return [...acc, emailInfo];
       }, [])
