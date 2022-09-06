@@ -1,14 +1,27 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import AWS from "aws-sdk";
 import isYourBirthday from "./isYourBirthday";
 
-const client = new DynamoDBClient({ region: "eu-west-1" });
+const ddbClient = new DynamoDBClient({ region: "eu-west-1" });
+const sesClient = new SESClient({ region: "eu-west-1" });
 
-const input = {
+const ddbCommand = new ScanCommand({
   TableName: process.env.TABLE_NAME,
-};
+});
 
-const command = new ScanCommand(input);
+const sendEmail = async (emailAddress: string, name: string) => {
+  const response = await sesClient.send(
+    new SendEmailCommand({
+      Destination: {
+        ToAddresses: [emailAddress],
+      },
+      Source: "",
+      Message: `Happy Birthday ${name}!`,
+    })
+  );
+  console.log(response);
+};
 
 type EmailInfo = {
   name: string;
@@ -29,7 +42,7 @@ type Birthday = {
 
 export const handler = async () => {
   try {
-    const { Items } = await client.send(command);
+    const { Items } = await ddbClient.send(ddbCommand);
 
     const emailsToSendToday = Items?.map((record) =>
       AWS.DynamoDB.Converter.unmarshall(record)
@@ -58,10 +71,11 @@ export const handler = async () => {
       .flat();
 
     console.log("EMAILS", emailsToSendToday);
+
+    await Promise.all(emailsToSendToday.map(sendEmail));
+
+    return { statusCode: 200, body: "Emails sent" };
   } catch (error) {
     console.log("ERROR", error);
-    // error handling.
   }
-
-  //   return { statusCode: 200, body: "Hello world" };
 };
