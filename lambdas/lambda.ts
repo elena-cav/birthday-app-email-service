@@ -77,5 +77,7 @@ export const handler = async () => {
     return { statusCode: 200, body: "Emails sent" };
   } catch (error) {
     console.log("ERROR", error);
+
+    return { statusCode: 500, body: error };
   }
 };
