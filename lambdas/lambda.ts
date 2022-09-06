@@ -10,14 +10,27 @@ const ddbCommand = new ScanCommand({
   TableName: process.env.TABLE_NAME,
 });
 
-const sendEmail = async (emailAddress: string, name: string) => {
+const sendEmail = async (
+  emailAddress: string,
+  name: string,
+  birthdayName: string
+) => {
+  console.log("EMAIL SENDER", process.env.EMAIL_SENDER);
+  console.log("EMAIL ADDRESS", emailAddress);
   const response = await sesClient.send(
     new SendEmailCommand({
       Destination: {
         ToAddresses: [emailAddress],
       },
       Source: process.env.EMAIL_SENDER,
-      Message: `Happy Birthday ${name}!`,
+      Message: {
+        Subject: { Data: `Today's Birthdays` },
+        Body: {
+          Text: {
+            Data: `Good morning ${name}! Today it's ${birthdayName}'s birthday!`,
+          },
+        },
+      },
     })
   );
   console.log(response);
@@ -25,6 +38,7 @@ const sendEmail = async (emailAddress: string, name: string) => {
 
 type EmailInfo = {
   name: string;
+  birthdayName: string;
   email: string;
   birthday: Date;
 };
@@ -57,7 +71,8 @@ export const handler = async () => {
               ? [
                   ...previousEmailInfos,
                   {
-                    name: nextBirthday.name,
+                    name: next?.name,
+                    birthdayName: nextBirthday.name,
                     birthday: new Date(nextBirthday.date),
                     email: next.email,
                   },
@@ -72,7 +87,19 @@ export const handler = async () => {
 
     console.log("EMAILS", emailsToSendToday);
 
-    await Promise.all(emailsToSendToday.map(sendEmail));
+    await Promise.all(
+      emailsToSendToday.map(
+        ({
+          email,
+          name,
+          birthdayName,
+        }: {
+          email: string;
+          name: string;
+          birthdayName: string;
+        }) => sendEmail(email, name, birthdayName)
+      )
+    );
 
     return { statusCode: 200, body: "Emails sent" };
   } catch (error) {
