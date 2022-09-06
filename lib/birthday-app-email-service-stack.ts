@@ -1,23 +1,34 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import {
-  Policy,
-  PolicyDocument,
-  PolicyStatement,
-  Role,
-  ServicePrincipal,
-  Effect,
-} from "aws-cdk-lib/aws-iam";
+import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
+import { EventBus, Rule, Schedule } from "aws-cdk-lib/aws-events";
+import * as targets from "aws-cdk-lib/aws-events-targets";
+
 export class BirthdayAppEmailServiceStack extends cdk.Stack {
+  resourceId;
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const emailLambda = new NodejsFunction(this, "my-handler", {
+    this.resourceId = "birthday-email-service";
+
+    const eventBus = new EventBus(this, this.resourceId, {
+      eventBusName: "BirthdayEmailService",
+    });
+
+    const emailLambda = new NodejsFunction(this, this.resourceId, {
       entry: "./lambdas/lambda.ts",
       environment: {
         TABLE_NAME: "User-vnuwshx4qvcddcqx24ru2aywiy-dev",
       },
+    });
+
+    new Rule(this, `ScheduleEmailLambda`, {
+      eventBus: eventBus,
+      eventPattern: { source: [`email-sender`] },
+      targets: [new targets.LambdaFunction(emailLambda)],
+      schedule: Schedule.cron({ minute: "0", hour: "8" }),
     });
 
     emailLambda.addToRolePolicy(
@@ -27,6 +38,7 @@ export class BirthdayAppEmailServiceStack extends cdk.Stack {
         effect: Effect.ALLOW,
       })
     );
+
     emailLambda.addToRolePolicy(
       new PolicyStatement({
         actions: ["ses:SendEmail", "ses:SendRawEmail"],
@@ -34,12 +46,5 @@ export class BirthdayAppEmailServiceStack extends cdk.Stack {
         effect: Effect.ALLOW,
       })
     );
-
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'BirthdayAppEmailServiceQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
   }
 }
