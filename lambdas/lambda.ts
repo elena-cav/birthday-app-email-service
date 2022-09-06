@@ -36,7 +36,10 @@ export const handler = async () => {
     )
       ?.reduce((acc: [EmailInfo], next: Item) => {
         const emailInfo = next?.birthdays.reduce<EmailInfo[]>(
-          (previousEmailInfos: EmailInfo[], nextBirthday: Birthday): EmailInfo[] =>
+          (
+            previousEmailInfos: EmailInfo[],
+            nextBirthday: Birthday
+          ): EmailInfo[] =>
             isYourBirthday(nextBirthday.date)
               ? [
                   ...previousEmailInfos,
