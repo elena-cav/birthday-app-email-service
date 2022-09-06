@@ -29,7 +29,7 @@ export class BirthdayAppEmailServiceStack extends cdk.Stack {
     );
     emailLambda.addToRolePolicy(
       new PolicyStatement({
-        actions: ["ses:SendEmail"],
+        actions: ["ses:SendEmail", "ses:SendRawEmail"],
         resources: ["*"],
         effect: Effect.ALLOW,
       })
