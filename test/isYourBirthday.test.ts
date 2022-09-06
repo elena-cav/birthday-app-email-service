@@ -29,6 +29,10 @@ const data = [
     input: "05/01/2020",
     expected: false,
   },
+  {
+    input: "20/01/2020",
+    expected: false,
+  },
 ];
 
 describe.each(data)(`Is it your birthday?`, (d) => {
