@@ -21,11 +21,11 @@ export class BirthdayAppEmailServiceStack extends cdk.Stack {
     });
 
     const eventRule = new Rule(this, "ScheduleEmailLambda", {
-      schedule: Schedule.cron({ minute: "54", hour: "10" }),
+      schedule: Schedule.cron({ minute: "20", hour: "11" }),
       targets: [new targets.LambdaFunction(emailLambda)],
     });
 
-    targets.addLambdaPermission(eventRule, emailLambda);
+    eventRule.addTarget(new targets.LambdaFunction(emailLambda));
 
     emailLambda.addToRolePolicy(
       new PolicyStatement({
