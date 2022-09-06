@@ -16,7 +16,7 @@ const sendEmail = async (emailAddress: string, name: string) => {
       Destination: {
         ToAddresses: [emailAddress],
       },
-      Source: "",
+      Source: process.env.EMAIL_SENDER,
       Message: `Happy Birthday ${name}!`,
     })
   );
