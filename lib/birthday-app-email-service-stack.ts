@@ -2,9 +2,8 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
-import { EventBus, Rule, Schedule } from "aws-cdk-lib/aws-events";
+import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
-import * as sqs from "aws-cdk-lib/aws-sqs";
 
 export class BirthdayAppEmailServiceStack extends cdk.Stack {
   resourceId: string;
