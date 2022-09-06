@@ -6,16 +6,12 @@ import { EventBus, Rule, Schedule } from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 
 export class BirthdayAppEmailServiceStack extends cdk.Stack {
-  resourceId;
+  resourceId: string;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     this.resourceId = "birthday-email-service";
-
-    const eventBus = new EventBus(this, this.resourceId, {
-      eventBusName: "BirthdayEmailService",
-    });
 
     const emailLambda = new NodejsFunction(this, this.resourceId, {
       entry: "./lambdas/lambda.ts",
@@ -23,12 +19,9 @@ export class BirthdayAppEmailServiceStack extends cdk.Stack {
         TABLE_NAME: "User-vnuwshx4qvcddcqx24ru2aywiy-dev",
       },
     });
-
-    new Rule(this, `ScheduleEmailLambda`, {
-      eventBus: eventBus,
-      eventPattern: { source: [`email-sender`] },
+    new Rule(this, "ScheduleEmailLambda", {
+      schedule: Schedule.cron({ minute: "54", hour: "10" }),
       targets: [new targets.LambdaFunction(emailLambda)],
-      schedule: Schedule.cron({ minute: "0", hour: "8" }),
     });
 
     emailLambda.addToRolePolicy(
