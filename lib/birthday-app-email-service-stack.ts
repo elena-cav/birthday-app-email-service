@@ -19,10 +19,13 @@ export class BirthdayAppEmailServiceStack extends cdk.Stack {
         TABLE_NAME: "User-vnuwshx4qvcddcqx24ru2aywiy-dev",
       },
     });
-    new Rule(this, "ScheduleEmailLambda", {
+
+    const eventRule = new Rule(this, "ScheduleEmailLambda", {
       schedule: Schedule.cron({ minute: "54", hour: "10" }),
       targets: [new targets.LambdaFunction(emailLambda)],
     });
+
+    targets.addLambdaPermission(eventRule, emailLambda);
 
     emailLambda.addToRolePolicy(
       new PolicyStatement({
