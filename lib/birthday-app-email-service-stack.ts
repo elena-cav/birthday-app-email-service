@@ -4,6 +4,7 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
 import { EventBus, Rule, Schedule } from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
+import * as sqs from "aws-cdk-lib/aws-sqs";
 
 export class BirthdayAppEmailServiceStack extends cdk.Stack {
   resourceId: string;
@@ -21,11 +22,16 @@ export class BirthdayAppEmailServiceStack extends cdk.Stack {
     });
 
     const eventRule = new Rule(this, "ScheduleEmailLambda", {
-      schedule: Schedule.cron({ minute: "*" }),
+      schedule: Schedule.cron({ minute: "0", hour: "7" }),
     });
 
-    eventRule.addTarget(new targets.LambdaFunction(emailLambda));
-    // targets.addLambdaPermission(eventRule, emailLambda);
+    targets.addLambdaPermission(eventRule, emailLambda);
+
+    eventRule.addTarget(
+      new targets.LambdaFunction(emailLambda, {
+        retryAttempts: 2,
+      })
+    );
 
     emailLambda.addToRolePolicy(
       new PolicyStatement({
